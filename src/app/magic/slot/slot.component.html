@@ -1,0 +1,80 @@
+
+<mat-card class="slot-card">
+    <mat-card-header>
+        <mat-card-title>本次接触魔网还剩下<span>{{ minutes }}</span>分钟</mat-card-title>
+        <mat-card-subtitle>下一次冥想开始于<span>{{ next }}</span></mat-card-subtitle>
+        <span class="magic-spacer"></span>
+        <button mat-mini-fab color="warn" *ngIf="minutes==0" (click)="showAdd.emit()">
+            <mat-icon aria-label="Edit">create</mat-icon>
+        </button>
+    </mat-card-header>
+    <mat-divider></mat-divider>
+    <mat-card-content>
+        <div></div>
+        <mat-list class="slot-list-div"  *ngIf="slots && slots.length > 0">
+            <mat-list-item>
+                <div class="list-div width-name">法术位</div>
+                <div class="list-div width-used"></div>
+                <div class="list-div width-minutes">分钟</div>
+                <div class="list-div list-operate width-operate">操作</div>
+            </mat-list-item>
+            <div cdkDropList class="slot-list" (cdkDropListDropped)="drop($event)">
+                <mat-list-item class="slot-top slot-box" *ngFor="let slot of slots" cdkDrag>
+                    <div class="slot-custom-placeholder" *cdkDragPlaceholder></div>
+                    <div class="list-name-td width-name">{{ slot.name }}</div>
+                    <div class="list-used-td width-used">已使用</div>
+                    <div class="list-minutes-td width-minutes">{{ slot.minutes }}</div>                          
+                    <div class="list-operate-td width-operate">
+                        <button mat-icon-button class="slot-button" (click)="aaeDialogOpen( slot.item )">
+                            <mat-icon aria-label="Add minute">add</mat-icon>
+                        </button>
+                        <button mat-icon-button class="slot-button" (click)="deleteDialogOpen( slot.item )">
+                            <mat-icon aria-label="Delete">clear</mat-icon>
+                        </button>
+                    </div>
+                    <span *cdkDragPreview class="slot-move">{{ slot.name }}...</span>
+                </mat-list-item>
+            </div>
+        </mat-list>
+        <div *ngIf="!slots || slots.length == 0" class="slot-none">
+            <mat-label>点击右上角添加法术位</mat-label>
+        </div>
+    </mat-card-content>
+</mat-card>
+
+<ng-template #loading>
+    <mat-progress-spinner class="progress" color="primary" diameter="80" mode="indeterminate" strokeWidth="4"></mat-progress-spinner>
+</ng-template>
+<ng-template #delete>
+    <div mat-dialog-content class="delete-title">
+        <p>是否删除</p>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-button (click)="deleteDialogClose(0)">取消</button>
+        <span class="magic-spacer"></span>
+        <button mat-button (click)="deleteDialogClose(1)">确定</button>
+    </div>
+</ng-template>
+<ng-template #aae>
+    <mat-tab-group mat-stretch-tabs mat-align-tabs="center" [(selectedIndex)]="tabIndex">
+        <mat-tab label="增加">
+            <mat-form-field class="slot-minutes">
+                <mat-label>增加已使用时间</mat-label>
+                <input matInput type="tel" [(ngModel)]="newMinutes" [formControl]="minutesRule" placeholder="请输入数字">
+                <span matSuffix>分钟</span>
+            </mat-form-field>
+        </mat-tab>
+        <mat-tab label="修改">
+            <mat-form-field class="slot-minutes">
+                <mat-label>修改已使用时间</mat-label>
+                <input matInput type="tel" [(ngModel)]="newMinutes" [formControl]="minutesRule" placeholder="请输入数字">
+                <span matSuffix>分钟</span>
+            </mat-form-field>
+        </mat-tab>
+    </mat-tab-group>
+    <div mat-dialog-actions>
+        <button mat-button (click)="aaeDialogClose(0)">取消</button>
+        <span class="magic-spacer"></span>
+        <button mat-button (click)="aaeDialogClose(1)">确定</button>
+    </div>
+</ng-template>
