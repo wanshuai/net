@@ -1,0 +1,31 @@
+<mat-toolbar color="primary">  
+    <mat-toolbar-row>
+        <span>{{ title }}</span>
+        <span class="magic-spacer"></span>
+        <button mat-icon-button *ngIf="showSlot && length<7" class="magic-slot-new" (click)="dialogOpen()">
+            <mat-icon aria-label="Add">bubble_chart</mat-icon>
+        </button>
+    </mat-toolbar-row>
+</mat-toolbar>
+<mat-progress-spinner *ngIf="showLoading" class="progress" color="primary" diameter="80" mode="indeterminate" strokeWidth="4" aria-label="loading"></mat-progress-spinner>
+<app-slot (showAdd)="onShowAdd()" *ngIf="showSlot"></app-slot>
+<app-before-add (showAdd)="onShowAdd()" *ngIf="showBeforeAdd"></app-before-add>
+<app-add (showSlot)="onShowSlot()" *ngIf="showAdd"></app-add>
+
+<ng-template #loading>
+    <mat-progress-spinner class="progress" color="primary" diameter="80" mode="indeterminate" strokeWidth="4"></mat-progress-spinner>
+</ng-template>
+<ng-template #new>
+    <div mat-dialog-content>
+        <p>添加新的法术位</p>
+        <mat-form-field>
+            <mat-label>法术位名称</mat-label>
+            <input matInput [(ngModel)]="slotName">
+        </mat-form-field>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-button (click)="dialogClose(0)">取消</button>
+        <span class="magic-spacer"></span>
+        <button mat-button (click)="dialogClose(1)">添加</button>
+    </div>
+</ng-template>
