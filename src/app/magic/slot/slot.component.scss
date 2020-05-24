@@ -33,7 +33,8 @@
     .width-name {
         padding-left: 8px;
         text-align: left;
-        flex-grow: 1;
+        width: 120px;
+        flex-grow: 0;
     }
     .width-used {
         flex-grow: 0;
@@ -63,12 +64,6 @@
     text-align: center;
     font-size: 16px;
     color: red;
-}
-.delete-title {
-    text-align: center;
-}
-.slot-minutes {
-    margin-top: 12px;
 }
 // drag
 .cdk-drag-preview {

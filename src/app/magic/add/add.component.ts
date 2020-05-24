@@ -1,12 +1,9 @@
-import { Component, OnInit, Output, EventEmitter, ViewChild, TemplateRef } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { CalendarHeaderComponent } from './calendar-header/calendar-header.component';
 import { BottomPopService } from '../../service/bottom-pop.service';
-import { ConjureService } from '../../service/conjure.service';
-import { DialogService } from '../../service/dialog.service';
-import { Res } from '../../common/params';
 
 // Depending on whether rollup is used, moment needs to be imported differently.
 // Since Moment.js doesn't have a default export, we normally need to import using the `* as`
@@ -37,11 +34,10 @@ const MY_DATE_FORMATS = {
     { provide: MAT_DATE_LOCALE, useValue: 'zh-CN' }
   ]
 })
-export class AddComponent implements OnInit {
+export class AddComponent {
 
-  @Output() showSlot = new EventEmitter();
+  @Output() start = new EventEmitter<string>();
   minDate: string = moment().format('YYYY-MM-DD');
-  @ViewChild("loading") loading: TemplateRef<any>
   addHeader = CalendarHeaderComponent
   startForm = new FormGroup({
     start: new FormControl(moment(), [Validators.required]),
@@ -51,12 +47,7 @@ export class AddComponent implements OnInit {
 
   constructor(
      private bottomPop: BottomPopService,
-     private conjureService: ConjureService,
-     private dialog: DialogService
     ) { }
-
-  ngOnInit(): void {
-  }
 
   onSubmit(): void|boolean {
     let start = this.startForm.value.start.format("YYYY-MM-DD");
@@ -85,17 +76,7 @@ export class AddComponent implements OnInit {
       return false;
     }
 
-    this.dialog.open(this.loading, {disableClose: true})
-    this.conjureService.start("start="+start+"&loop="+loop+"&used="+used).subscribe(res => this.successFunc(res));
-  }
-
-  successFunc(data: Res): void {
-    this.dialog.close()
-    if(data.status == 200){
-      this.showSlot.emit();
-    }else{
-      this.bottomPop.open(data.msg, 2);
-    }
+    this.start.emit("start="+start+"&loop="+loop+"&used="+used)
   }
 
 }

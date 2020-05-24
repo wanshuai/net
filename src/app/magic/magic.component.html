@@ -1,19 +1,32 @@
-<mat-toolbar color="primary">  
-    <mat-toolbar-row>
-        <span>{{ title }}</span>
-        <span class="magic-spacer"></span>
-        <button mat-icon-button *ngIf="showSlot && length<7" class="magic-slot-new" (click)="dialogOpen()">
-            <mat-icon aria-label="Add">bubble_chart</mat-icon>
-        </button>
-    </mat-toolbar-row>
-</mat-toolbar>
-<mat-progress-spinner *ngIf="showLoading" class="progress" color="primary" diameter="80" mode="indeterminate" strokeWidth="4" aria-label="loading"></mat-progress-spinner>
-<app-slot (showAdd)="onShowAdd()" *ngIf="showSlot"></app-slot>
-<app-before-add (showAdd)="onShowAdd()" *ngIf="showBeforeAdd"></app-before-add>
-<app-add (showSlot)="onShowSlot()" *ngIf="showAdd"></app-add>
+<app-header [length]="showSlot ? this.data.slot.length : 7" [title]="title" (dialog)="onDialogOpen($event)"></app-header>
+<app-loading *ngIf="showLoading"></app-loading>
+<app-start *ngIf="showStart" (showAdd)="onShowAdd()"></app-start>
+<app-add *ngIf="showAdd" (start)="getStart($event)"></app-add>
+<app-slot *ngIf="showSlot" [minutes]="this.data.minutes" [next]="this.data.next" [slots]="this.data.slot" (showAdd)="onShowAdd()" (dialog)="onDialogOpen($event)"></app-slot>
 
-<ng-template #loading>
-    <mat-progress-spinner class="progress" color="primary" diameter="80" mode="indeterminate" strokeWidth="4"></mat-progress-spinner>
+<ng-template #ready>
+    <mat-progress-spinner color="primary" diameter="80" mode="indeterminate" strokeWidth="4"></mat-progress-spinner>
+</ng-template>
+<ng-template #login>
+    <div mat-dialog-content>
+        <div>
+            <mat-form-field>
+                <mat-label>账号</mat-label>
+                <input matInput type="text" [(ngModel)]="account" name="account" placeholder="请输入账号">
+            </mat-form-field>
+        </div>
+        <div>
+            <mat-form-field>
+                <mat-label>密码</mat-label>
+                <input matInput type="password" [(ngModel)]="pwd" name="pwd" placeholder="请输入密码">
+            </mat-form-field>
+        </div>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-button (click)="dialogClose({name: 'login', key: 0})">取消</button>
+        <span class="flex-spacer"></span>
+        <button mat-button (click)="dialogClose({name: 'login', key: 1})">确定</button>
+    </div>
 </ng-template>
 <ng-template #new>
     <div mat-dialog-content>
@@ -24,8 +37,41 @@
         </mat-form-field>
     </div>
     <div mat-dialog-actions>
-        <button mat-button (click)="dialogClose(0)">取消</button>
-        <span class="magic-spacer"></span>
-        <button mat-button (click)="dialogClose(1)">添加</button>
+        <button mat-button (click)="dialogClose({name: 'new', key: 0})">取消</button>
+        <span class="flex-spacer"></span>
+        <button mat-button (click)="dialogClose({name: 'new', key: 1})">添加</button>
+    </div>
+</ng-template>
+<ng-template #delete>
+    <div mat-dialog-content class="delete-title">
+        <p>是否删除</p>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-button (click)="dialogClose({name: 'delete', key: 0})">取消</button>
+        <span class="flex-spacer"></span>
+        <button mat-button (click)="dialogClose({name: 'delete', key: 1})">确定</button>
+    </div>
+</ng-template>
+<ng-template #aae>
+    <mat-tab-group mat-stretch-tabs mat-align-tabs="center" [(selectedIndex)]="tabIndex">
+        <mat-tab label="增加">
+            <mat-form-field class="slot-minutes">
+                <mat-label>增加已使用时间</mat-label>
+                <input matInput type="tel" [(ngModel)]="newMinutes" [formControl]="minutesRule" placeholder="请输入数字">
+                <span matSuffix>分钟</span>
+            </mat-form-field>
+        </mat-tab>
+        <mat-tab label="修改">
+            <mat-form-field class="slot-minutes">
+                <mat-label>修改已使用时间</mat-label>
+                <input matInput type="tel" [(ngModel)]="newMinutes" [formControl]="minutesRule" placeholder="请输入数字">
+                <span matSuffix>分钟</span>
+            </mat-form-field>
+        </mat-tab>
+    </mat-tab-group>
+    <div mat-dialog-actions>
+        <button mat-button (click)="dialogClose({name: 'aae', key: 0})">取消</button>
+        <span class="flex-spacer"></span>
+        <button mat-button (click)="dialogClose({name: 'aae', key: 1})">确定</button>
     </div>
 </ng-template>

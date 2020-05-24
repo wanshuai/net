@@ -1,0 +1,9 @@
+<mat-toolbar color="primary">  
+    <mat-toolbar-row>
+        <span>{{ title }}</span>
+        <span class="flex-spacer"></span>
+        <button mat-icon-button *ngIf="length<7" class="header-slot-new" (click)="dialog.emit({name: 'new'})">
+            <mat-icon aria-label="Add">bubble_chart</mat-icon>
+        </button>
+    </mat-toolbar-row>
+</mat-toolbar>

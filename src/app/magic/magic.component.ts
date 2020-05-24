@@ -2,93 +2,205 @@ import { Component, ViewChild, TemplateRef } from '@angular/core';
 import { DialogService } from '../service/dialog.service';
 import { ConjureService } from '../service/conjure.service';
 import { BottomPopService } from '../service/bottom-pop.service';
-import { Res } from '../common/params';
+import { StorageService } from '../service/storage.service';
+import { Res, Magic, Slot, Minutes, Dialog } from '../common/params';
+import { FormControl, Validators } from '@angular/forms';
+import { Md5 } from "ts-md5";
 
 @Component({
   selector: 'app-magic',
   templateUrl: './magic.component.html',
   styleUrls: ['./magic.component.scss']
 })
-export class MagicComponent{
+export class MagicComponent {
 
-  length: number;
+  //流程控制
   showLoading: boolean;
   showSlot: boolean;
-  showBeforeAdd: boolean;
+  showStart: boolean;
   showAdd: boolean;
-  title: string;
-  slotName: string; //法术位名称
-  @ViewChild("loading") loading: TemplateRef<any>;
-  @ViewChild("new") new: TemplateRef<any>;
+  step: string;
 
+  onShowLoading(): void {
+    this.showLoading = true;
+    this.showSlot = this.showStart = this.showAdd = false;
+  }
+
+  onShowStart(): void {
+    this.showStart = true;
+    this.showLoading = this.showSlot = this.showAdd = false;
+    this.title = "打开魔力池";
+  }
+
+  onShowAdd(): void {
+    this.showAdd = true;
+    this.showLoading = this.showSlot = this.showStart = false;
+  }
+
+  onShowSlot(): void {
+    this.showSlot = true;
+    this.showLoading = this.showStart = this.showAdd = false;
+    this.title = "魔力池";
+  }
+
+  //传递变量
+  data: Magic
+  // dialogList: {}
+  params: string;
+  title: string;
+  selectItem: number;
+  minutesRule = new FormControl('1', [Validators.required, Validators.min(1), Validators.pattern('[0-9]*')])
+
+  //绑定变量
+  slotName: string; //法术位名称
+  account: string = "";
+  pwd: string = "";
+  newMinutes: number
+  tabIndex: number = 0;
+
+  //模板
+  @ViewChild("ready") ready: TemplateRef<any>;
+  @ViewChild("new") new: TemplateRef<any>;
+  @ViewChild("login") login: TemplateRef<any>;
+  @ViewChild("delete") delete: TemplateRef<any>;
+  @ViewChild("aae") aae: TemplateRef<any>
+  
   constructor(
-    private conjureService: ConjureService,
+    private conjure: ConjureService,
+    private storage: StorageService,
     private dialog: DialogService,
     private bottomPop: BottomPopService
   ) {
-    this.showLoading = true;
-    this.showSlot = false;
-    this.showBeforeAdd = false;
-    this.showAdd = false;
+    this.onShowLoading()
     this.getSlots()
-    this.conjureService.data$.subscribe(res=>{if(res.slot){this.length=res.slot.length}else{this.length=0}})
+  }
+  
+  randomSalt(len: number): string {
+    let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let str = '';
+    for (let i = 0; i < len; i++) {
+        str += chars.charAt(Math.floor(Math.random() * 62));
+    }
+    return str
+  }
+
+  getLogin(): string {
+    let salt = this.randomSalt(4)
+    return "&account="+this.account+"&pwd="+(this.pwd ? (Md5.hashStr(Md5.hashStr(this.pwd)+" "+salt)+"&salt="+salt+this.randomSalt(2)) : "")
   }
 
   getSlots(): void {
-    this.conjureService.getData().subscribe(res => this.dataFunc(res));
+    let data = "order="+this.storage.get("order")+this.getLogin()
+    this.conjure.getData(data).subscribe(res => this.dataFunc<Magic>("slots", res));
   }
 
-  dataFunc(res: Res): void {
+  getAdd():void {
+    let data = "name="+this.slotName+this.getLogin()
+    this.dialog.open(this.ready, {disableClose: true});
+    this.conjure.add(data).subscribe(res=>this.dataFunc<Slot>("add", res));
+  }
+
+  getDelete(): void {
+    let data = "item="+this.selectItem+this.getLogin()
+    this.dialog.open(this.ready, {disableClose: true});
+    this.conjure.delete(data).subscribe(res=>this.dataFunc<Minutes>("delete", res))
+  }
+
+  getStart(data: string|null): void {
+    if(typeof data === "string"){
+      this.params = data
+    }
+    this.dialog.open(this.ready, {disableClose: true})
+    this.conjure.start(this.params+"&account="+this.account+"&pwd="+this.pwd).subscribe(res => this.dataFunc<Magic>("start", res));
+  }
+
+  getEdit(): void {
+    let data = "item="+this.selectItem+"&minutes="+this.newMinutes+"&type="+this.tabIndex+this.getLogin()
+    this.dialog.open(this.ready, {disableClose: true});
+    this.conjure.edit(data).subscribe(res=>this.dataFunc<Minutes>("aae", res))
+  }
+  
+  dataFunc<T>(name: string, res: Res): void {
     if(res.status != 200){
       this.bottomPop.open(res.msg, 2);
-    }else if(Object.keys(res.data).length == 0){
-      this.showLoading = false;
-      this.showSlot = false;
-      this.showBeforeAdd = true;
-      this.showAdd = false;
-      this.title = "打开魔力池";
+      if(res.status == 100){
+        this.step = name
+        this.onDialogOpen({name: "login"})
+      }
+    }else{
+      this.account = this.pwd = ""
+      this[name+"Func"](<T>res.data)
+    } 
+  }
+
+  slotsFunc(data: Magic) {
+    this.data = data
+    if(Object.keys(data).length == 0){
+      this.onShowStart()
     }else{
       this.onShowSlot()
     }
   }
 
-  onShowAdd(): void {
-    this.showLoading = false;
-    this.showSlot = false;
-    this.showBeforeAdd = false;
-    this.showAdd = true;
+  addFunc(data: Slot): void {
+    this.data.slot.unshift(data)
+    this.dialog.closeAll();
   }
 
-  onShowSlot(): void {
-    this.showLoading = false;
-    this.showSlot = true;
-    this.showBeforeAdd = false;
-    this.showAdd = false;
-    this.title = "魔力池";
-  }
-
-  dialogOpen(): void {
-    this.dialog.open(this.new, { disableClose: true });
-  }
-
-  dialogClose(type: number): void {
-    if(type == 0){
-      this.dialog.close();
-    }else{
-      if(this.slotName){
-        this.dialog.open(this.loading, {disableClose: true});
-        this.conjureService.add("name="+this.slotName).subscribe(res=>this.addFunc(res));
-      }else{
-        this.bottomPop.open("请输入法术位名称", 0)
-      }
-    }
-    this.slotName = "";
-  }
-
-  addFunc(res: Res): void {
+  deleteFunc(data: Minutes): void {
+    this.data.slot = this.data.slot.filter(list=>list.item!=this.selectItem)
+    this.data.minutes = data.total
     this.dialog.closeAll()
-    if(res.status != 200){
-      this.bottomPop.open(res.msg, 2);
+  }
+
+  startFunc(data: Magic) {
+    this.data = data
+    this.onShowSlot()
+    this.dialog.closeAll()
+  }
+
+  aaeFunc(data: Minutes): void {
+    let item = this.data.slot.findIndex((val)=>{return val.item==this.selectItem})
+    this.data.minutes = data.total
+    this.data.slot[item].minutes = data.new
+    this.dialog.closeAll()
+  }
+
+  onDialogOpen(data: Dialog){
+    this.dialog.open(this[data['name']], { disableClose: true })
+    this.selectItem = data['key']
+  }
+  
+  dialogClose(data: Dialog): void {
+    if(data['key'] == 0){
+      this.dialog.closeAll();
+    }else{
+      this[data['name']+"Close"]()
+    }
+  }
+
+  newClose(): void {
+    if(this.slotName){
+      this.getAdd()
+    }else{
+      this.bottomPop.open("请输入法术位名称", 0)
+    }
+  }
+
+  loginClose(): void {
+    this.dialog.closeAll();
+    this["get"+this.step.replace(this.step[0],this.step[0].toUpperCase())]()
+  }
+
+  deleteClose(): void {
+    this.getDelete()
+  }  
+
+  aaeClose(): void {
+    if(!/^[0-9]+$/.test(this.newMinutes+"")){
+      this.bottomPop.open("请只输入数字", 0)
+    }else{
+      this.getEdit()
     }
   }
 

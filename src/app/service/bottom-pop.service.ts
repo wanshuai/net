@@ -6,15 +6,21 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class BottomPopService {
 
+  duration: number = 2000
   level: string[] = ["提示", "警告", "错误"]
 
   constructor(private snackBar: MatSnackBar){}
 
-  open(message: string, level?: string|number, time?: number): void{
-    if(typeof level === "number") level = this.level.find((item: string, index: number) => {return index===level})
+  open(message: string, level: string|number, time?: number|{}, config?: {}): void{
+    let options = {}
     if(!message) message = "没有定义message参数"
-    if(typeof time === null || time <= 0) time = 2000;
+    if(typeof level === "number") level = this.level.find((item: string, index: number) => {return index===level})
+    if(typeof time === "number" && time > 0) this.duration = time
+    else if(typeof time !== "undefined" && Object.keys(time).length > 0) options = time
+    if(typeof config !== "undefined" && Object.keys(config).length > 0) Object.assign(options, config)
 
-    this.snackBar.open(message, level, {duration: time})
+    options["duration"] = this.duration
+    options["panelClass"] = "text-center"
+    this.snackBar.open(message, level, options)
   }
 }

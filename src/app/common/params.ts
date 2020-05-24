@@ -5,9 +5,9 @@ export interface Slot {
   }
 
 export interface Magic {
-  minutes: number,
-  next: string,
-  slot: Slot[]
+  minutes?: number,
+  next?: string,
+  slot?: Slot[]
 }
 
 export interface Minutes {
@@ -19,4 +19,9 @@ export interface Res {
     status: number,
     msg: string,
     data?: Magic|Slot|Minutes|{}
+  }
+
+  export interface Dialog {
+    name: string,
+    key?: number,
   }

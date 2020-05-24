@@ -1,7 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
-body {
+html, body {
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: auto !important;
     background-color: #f9f9f9;
 }
-.magic-spacer {
+.flex-spacer {
     flex: 1 1 auto;
-  }
+}
+.text-center {
+    text-align: center;
+}
