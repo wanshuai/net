@@ -33,13 +33,13 @@ export class CalendarHeaderComponent implements OnDestroy {
 
   previousClicked(mode: 'month' | 'year') {
     this._calendar.activeDate = mode === 'month' ?
-      moment(this._calendar.activeDate).add(1, 'months') :
-      moment(this._calendar.activeDate).add(1, 'year');
+      moment(this._calendar.activeDate).add(-1, 'months') :
+      moment(this._calendar.activeDate).add(-1, 'year');
   }
 
   nextClicked(mode: 'month' | 'year') {
     this._calendar.activeDate = mode === 'month' ?
-      moment(this._calendar.activeDate).add(-1, 'months') :
-      moment(this._calendar.activeDate).add(-1, 'year');
+      moment(this._calendar.activeDate).add(1, 'months') :
+      moment(this._calendar.activeDate).add(1, 'year');
   }
 }

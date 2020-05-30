@@ -13,7 +13,6 @@ import { Md5 } from "ts-md5";
   styleUrls: ['./magic.component.scss']
 })
 export class MagicComponent {
-
   //流程控制
   showLoading: boolean;
   showSlot: boolean;
@@ -43,20 +42,16 @@ export class MagicComponent {
     this.title = "魔力池";
   }
 
-  //传递变量
-  data: Magic
-  // dialogList: {}
-  params: string;
-  title: string;
-  selectItem: number;
-  minutesRule = new FormControl('1', [Validators.required, Validators.min(1), Validators.pattern('[0-9]*')])
-
-  //绑定变量
-  slotName: string; //法术位名称
-  account: string = "";
-  pwd: string = "";
-  newMinutes: number
-  tabIndex: number = 0;
+  //变量
+  title: string;        //标题
+  data: Magic           // 数据
+  newMinutes: number    //新的时间
+  tabIndex: number = 0; //时间修改的方法
+  selectItem: number;   //选择的法术位
+  slotName: string;     //法术位名称
+  account: string = ""; //账号
+  pwd: string = "";     //密码
+  minutesRule = new FormControl(null, [Validators.required, Validators.min(1), Validators.pattern('[0-9]*')])
 
   //模板
   @ViewChild("ready") ready: TemplateRef<any>;
@@ -94,7 +89,7 @@ export class MagicComponent {
     this.conjure.getData(data).subscribe(res => this.dataFunc<Magic>("slots", res));
   }
 
-  getAdd():void {
+  getAdd(): void {
     let data = "name="+this.slotName+this.getLogin()
     this.dialog.open(this.ready, {disableClose: true});
     this.conjure.add(data).subscribe(res=>this.dataFunc<Slot>("add", res));
@@ -106,12 +101,10 @@ export class MagicComponent {
     this.conjure.delete(data).subscribe(res=>this.dataFunc<Minutes>("delete", res))
   }
 
-  getStart(data: string|null): void {
-    if(typeof data === "string"){
-      this.params = data
-    }
+  getStart(data: string): void {
+    data += this.getLogin()
     this.dialog.open(this.ready, {disableClose: true})
-    this.conjure.start(this.params+"&account="+this.account+"&pwd="+this.pwd).subscribe(res => this.dataFunc<Magic>("start", res));
+    this.conjure.start(data).subscribe(res => this.dataFunc<Magic>("start", res));
   }
 
   getEdit(): void {
@@ -130,6 +123,7 @@ export class MagicComponent {
     }else{
       this.account = this.pwd = ""
       this[name+"Func"](<T>res.data)
+      this.dialog.closeAll();
     } 
   }
 
@@ -143,27 +137,25 @@ export class MagicComponent {
   }
 
   addFunc(data: Slot): void {
+    this.slotName = ""
     this.data.slot.unshift(data)
-    this.dialog.closeAll();
   }
 
   deleteFunc(data: Minutes): void {
     this.data.slot = this.data.slot.filter(list=>list.item!=this.selectItem)
     this.data.minutes = data.total
-    this.dialog.closeAll()
   }
 
   startFunc(data: Magic) {
     this.data = data
     this.onShowSlot()
-    this.dialog.closeAll()
   }
 
   aaeFunc(data: Minutes): void {
+    this.minutesRule.reset()
     let item = this.data.slot.findIndex((val)=>{return val.item==this.selectItem})
     this.data.minutes = data.total
     this.data.slot[item].minutes = data.new
-    this.dialog.closeAll()
   }
 
   onDialogOpen(data: Dialog){

@@ -2,7 +2,7 @@
   <form class="add-container" [formGroup]="startForm" (ngSubmit)="onSubmit()">
     <mat-form-field appearance="outline">
       <mat-label class="add-start">下次冥想</mat-label>
-      <input matInput [matDatepicker]="picker" [min]="minDate" formControlName="start" class="add-input" disabled>
+      <input matInput (click)="picker.open()" [matDatepicker]="picker" [min]="minDate" formControlName="start" class="add-input" readonly>
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker disabled="false" [calendarHeaderComponent]="addHeader"></mat-datepicker>
       <mat-hint>开始时间</mat-hint>
